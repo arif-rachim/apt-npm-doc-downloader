@@ -1,0 +1,57 @@
+{
+  "out": "./bundle",
+  "delta_out": "",
+  "concurrency": 8,
+
+  "apt": {
+    "arch": ["amd64"],
+    "default_sources": true,
+    "repos": ["docker", "pgdg"],
+    "sources": [
+      {
+        "name": "internal-mirror",
+        "uri": "https://apt.internal.example.com/ubuntu",
+        "suites": ["noble"],
+        "components": ["main"],
+        "keyring": "/usr/share/keyrings/internal-archive.gpg"
+      }
+    ],
+    "sources_files": [],
+    "packages": ["nginx", "postgresql-16", "docker-ce", "jq"],
+    "include_recommends": false,
+    "exclude": [],
+    "prefer": {},
+    "gpgv_keyring": "",
+    "gen_repo": true
+  },
+
+  "npm": {
+    "registry": "https://registry.npmjs.org",
+    "lockfiles": ["./app/package-lock.json"],
+    "manifests": [],
+    "packages": [],
+    "include_dev": true,
+    "all_platforms": false
+  },
+
+  "pypi": {
+    "index": "https://pypi.org/simple",
+    "requirements": ["./requirements.txt"],
+    "uv_locks": [],
+    "projects": [],
+    "packages": [],
+    "python": "3.12",
+    "glibc_max": "2.39",
+    "sdist_fallback": true,
+    "gen_index": true
+  },
+
+  "docker": {
+    "images": ["nginx:1.27", "postgres:16-alpine", "ghcr.io/org/app:v1"],
+    "platform": "linux/amd64",
+    "auths": {
+      "ghcr.io": { "username": "", "password": "", "token": "" }
+    },
+    "convert_to_docker_v2": false
+  }
+}

@@ -1,0 +1,8 @@
+/bundle/
+/bundle-delta/
+/airgap
+/dist/
+/.offline/
+/airgap.json
+.nexus-push.conf
+*.tmp
