@@ -27,18 +27,19 @@ Folder ini berisi seluruh artefak (apt / npm / pypi / docker) beserta script
 untuk mendorongnya ke Nexus. Tidak perlu internet, Go, python, npm, docker,
 atau jq di sisi airgap - cukup bash dan curl.
 
-Langkah di mesin airgap:
+Langkah di mesin airgap (dipanggil dengan "bash": flash disk NTFS/exFAT sering
+ter-mount noexec, dan bundle dari Windows tidak membawa bit executable):
 
   1. Gabungkan ke mirror permanen (lewati bila folder ini memang mirrornya):
-       ./scripts/merge.sh /media/usb/<folder-ini> /srv/airgap-mirror
+       bash ./scripts/merge.sh /media/usb/<folder-ini> /srv/airgap-mirror
 
   2. Pastikan tidak ada file rusak setelah transfer:
-       ./scripts/verify.sh --bundle /srv/airgap-mirror
+       bash ./scripts/verify.sh --bundle /srv/airgap-mirror
 
   3. Dorong ke Nexus (interaktif saat pertama kali; berikutnya incremental):
-       ./scripts/push.sh --bundle /srv/airgap-mirror
-       ./scripts/push.sh --bundle /srv/airgap-mirror apt npm   # sebagian saja
-       ./scripts/push.sh --bundle /srv/airgap-mirror --dry-run
+       bash ./scripts/push.sh --bundle /srv/airgap-mirror
+       bash ./scripts/push.sh --bundle /srv/airgap-mirror apt npm   # sebagian saja
+       bash ./scripts/push.sh --bundle /srv/airgap-mirror --dry-run
 
 Isi folder:
   MANIFEST.tsv   daftar seluruh artefak (eco, sha256, ukuran, path, sumber)

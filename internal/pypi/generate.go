@@ -51,8 +51,10 @@ func LockProject(ctx context.Context, pyproject, python string) ([]LockPackage, 
 }
 
 // CompileRequirements pins an unpinned requirements file with
-// `uv pip compile`, returning the pinned content.
-func CompileRequirements(ctx context.Context, path, python string) ([]byte, error) {
+// `uv pip compile`, returning the pinned content. platform is uv's
+// --python-platform value (see Target.UVPlatform) so the result does not
+// depend on which OS the download runs on.
+func CompileRequirements(ctx context.Context, path, python, platform string) ([]byte, error) {
 	uv, err := uvBinary()
 	if err != nil {
 		return nil, err
@@ -60,6 +62,9 @@ func CompileRequirements(ctx context.Context, path, python string) ([]byte, erro
 	args := []string{"pip", "compile", "--quiet", "--no-header"}
 	if python != "" {
 		args = append(args, "--python-version", python)
+	}
+	if platform != "" {
+		args = append(args, "--python-platform", platform)
 	}
 	args = append(args, path)
 	cmd := exec.CommandContext(ctx, uv, args...)

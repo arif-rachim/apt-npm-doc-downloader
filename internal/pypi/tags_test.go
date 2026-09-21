@@ -82,3 +82,13 @@ func TestParseWheelNameWithBuildTag(t *testing.T) {
 		t.Fatalf("unexpected parse: %+v", w)
 	}
 }
+
+func TestUVPlatform(t *testing.T) {
+	tg, err := ParseTarget("3.12", "2.39", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := tg.UVPlatform(); got != "x86_64-manylinux_2_39" {
+		t.Errorf("got %s", got)
+	}
+}

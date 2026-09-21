@@ -1,16 +1,16 @@
 package config
 
 import (
+	"airgapkit/internal/textio"
 	"bufio"
 	"fmt"
-	"os"
 	"strings"
 )
 
 // ParseSourcesFile reads either classic one-line sources.list syntax or the
 // deb822 .sources format and returns the binary ("deb") entries.
 func ParseSourcesFile(path string) ([]AptSource, error) {
-	b, err := os.ReadFile(path)
+	b, err := textio.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

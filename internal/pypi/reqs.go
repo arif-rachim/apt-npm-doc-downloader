@@ -1,9 +1,10 @@
 package pypi
 
 import (
+	"airgapkit/internal/textio"
 	"bufio"
+	"bytes"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -38,14 +39,13 @@ func parseRequirements(path string, env Environment, seen map[string]bool) ([]Re
 	}
 	seen[abs] = true
 
-	f, err := os.Open(path)
+	data, err := textio.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
 
 	var out []Requirement
-	sc := bufio.NewScanner(f)
+	sc := bufio.NewScanner(bytes.NewReader(data))
 	sc.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	var joined string
 	for sc.Scan() {

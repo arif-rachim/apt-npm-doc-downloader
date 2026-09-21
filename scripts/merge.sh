@@ -42,6 +42,20 @@ tar -cf - -C "$SRC" \
   --exclude=./docker/IMAGES.tsv \
   . | tar -xf - -C "$DST"
 
+# 1b. A bundle written on Windows (or copied through FAT/exFAT/NTFS) has no
+# symlinks and no execute bits. Restore both so the mirror is a valid OCI
+# layout per image and the scripts can be run directly.
+if [ -d "$DST/docker/images" ]; then
+  while IFS= read -r layout; do
+    d=$(dirname "$layout")
+    [ -e "$d/blobs" ] || [ -L "$d/blobs" ] && continue
+    rel=${d#"$DST"/docker/}
+    up=$(printf '%s' "$rel" | awk -F/ '{s=""; for (i=0;i<NF;i++) s=s "../"; print s}')
+    ln -s "${up}blobs" "$d/blobs" 2>/dev/null || true
+  done < <(find "$DST/docker/images" -name oci-layout -type f)
+fi
+chmod +x "$DST"/scripts/*.sh 2>/dev/null || true
+
 # 2. Merge the manifest, newest entry per path wins.
 tmp=$(mktemp)
 if [ -f "$DST/MANIFEST.tsv" ]; then

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"airgapkit/internal/textio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,7 +17,7 @@ func AddSourcesToFile(path string, srcs []AptSource) error {
 		return nil
 	}
 	doc := map[string]any{}
-	if b, err := os.ReadFile(path); err == nil {
+	if b, err := textio.ReadFile(path); err == nil {
 		if err := json.Unmarshal(b, &doc); err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}

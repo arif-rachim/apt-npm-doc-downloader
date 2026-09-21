@@ -88,7 +88,7 @@ func runPyPI(ctx context.Context, o *options) (fetch.Stats, error) {
 		if len(cfg.Packages) > 0 && rf == reqFiles[len(reqFiles)-1] && len(cfg.Requirements) < len(reqFiles) {
 			origin = "-pkg " + strings.Join(cfg.Packages, ",")
 		}
-		reqs, err := resolveRequirements(ctx, rf, cfg.Python, env)
+		reqs, err := resolveRequirements(ctx, rf, cfg.Python, target.UVPlatform(), env)
 		if err != nil {
 			return st, fmt.Errorf("%s: %w", origin, err)
 		}
@@ -185,8 +185,8 @@ func wantsFromLock(pkgs []pypi.LockPackage, target pypi.Target, allowSdist bool)
 // resolveRequirements pins a requirements file. uv is used whenever it is
 // available so transitive dependencies are included; a fully pinned file is
 // accepted as-is when uv is missing.
-func resolveRequirements(ctx context.Context, path, python string, env pypi.Environment) ([]pypi.Requirement, error) {
-	compiled, err := pypi.CompileRequirements(ctx, path, python)
+func resolveRequirements(ctx context.Context, path, python, platform string, env pypi.Environment) ([]pypi.Requirement, error) {
+	compiled, err := pypi.CompileRequirements(ctx, path, python, platform)
 	if err == nil {
 		tmp, terr := os.CreateTemp("", "airgap-pinned-*.txt")
 		if terr != nil {

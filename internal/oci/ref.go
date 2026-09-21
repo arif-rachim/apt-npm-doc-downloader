@@ -94,5 +94,7 @@ func (r Ref) BundleDir() string {
 	if tag == "" {
 		tag = strings.ReplaceAll(r.Digest, ":", "-")
 	}
-	return "docker/images/" + r.Registry + "/" + r.Repository + "/" + tag
+	// A registry with a port ("registry:5000") would put a ':' in a directory
+	// name, which Windows cannot create.
+	return "docker/images/" + strings.ReplaceAll(r.Registry, ":", "_") + "/" + r.Repository + "/" + tag
 }

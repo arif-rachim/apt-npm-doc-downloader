@@ -1,9 +1,9 @@
 package main
 
 import (
+	"airgapkit/internal/textio"
 	"context"
 	"fmt"
-	"os"
 
 	"airgapkit/internal/dl"
 	"airgapkit/internal/fetch"
@@ -30,7 +30,7 @@ func runNPM(ctx context.Context, o *options) (fetch.Stats, error) {
 	}
 
 	for _, lock := range cfg.Lockfiles {
-		data, err := os.ReadFile(lock)
+		data, err := textio.ReadFile(lock)
 		if err != nil {
 			return st, err
 		}

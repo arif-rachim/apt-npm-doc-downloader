@@ -15,6 +15,13 @@ type Target struct {
 	Arch                   string // "x86_64"
 }
 
+// UVPlatform names this target for uv's --python-platform flag. Without it uv
+// resolves for the machine it runs on, so a Windows host would pin
+// Windows-only dependencies (colorama for pytest) and drop Linux-only ones.
+func (t Target) UVPlatform() string {
+	return fmt.Sprintf("%s-manylinux_%d_%d", t.Arch, t.GlibcMajor, t.GlibcMinor)
+}
+
 // ParseTarget builds a Target from config values such as "3.12" and "2.39".
 func ParseTarget(python, glibc, arch string) (Target, error) {
 	t := Target{Arch: arch}

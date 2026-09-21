@@ -1,7 +1,7 @@
 package pypi
 
 import (
-	"os"
+	"airgapkit/internal/textio"
 	"path"
 	"regexp"
 	"strings"
@@ -39,7 +39,7 @@ var (
 // URL), and the lockfile is universal, so it lists wheels for every platform
 // and Python version. Callers must still pick a wheel with Target.Score.
 func ParseUVLock(path string) ([]LockPackage, error) {
-	b, err := os.ReadFile(path)
+	b, err := textio.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

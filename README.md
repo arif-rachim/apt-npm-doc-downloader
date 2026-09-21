@@ -4,7 +4,9 @@ Tool untuk **mengunduh seluruh dependensi** (apt, npm, PyPI, container image) da
 mesin ber-internet, **membawanya ke lingkungan airgap**, lalu **mendorongnya ke
 Sonatype Nexus Repository 3** di sana.
 
-Target sistem: **Ubuntu 24.04 (noble), amd64, Python 3.12**.
+Target sistem: **Ubuntu 24.04 (noble), amd64, Python 3.12**. Sisi online
+(`airgap`) bisa dijalankan di **Linux maupun Windows** (lihat bagian 1c);
+sisi airgap selalu Ubuntu.
 
 Dua bagian:
 
@@ -21,7 +23,8 @@ Dua bagian:
 ./build.sh              # binary statis di ./airgap
 ./build.sh check        # go vet + gofmt + unit test + syntax check script bash
 ./build.sh offline      # buktikan bisa di-build tanpa jaringan
-./build.sh dist         # ./dist: binary + source tarball + SHA256SUMS
+./build.sh windows      # ./dist/airgapkit-<versi>-windows-amd64.zip (cross-compile)
+./build.sh dist         # ./dist: binary linux + zip windows + source tarball + SHA256SUMS
 ```
 
 `make` juga jalan kalau terpasang (cuma pembungkus `build.sh`), tapi `build.sh`
@@ -68,6 +71,38 @@ Di **sisi airgap** binary ini tidak diperlukan sama sekali: bundle membawa
 `scripts/` sendiri, yang hanya memakai `bash`, `curl`, dan utilitas bawaan
 Ubuntu (`awk`, `sed`, `tar`, `sha256sum`, `sort`, `grep`, `mktemp`). Tidak ada
 Go, Docker, Python, npm, atau `jq`.
+
+## 1c. Windows (sisi online)
+
+Mengunduh bisa dilakukan dari Windows untuk target Ubuntu 24.04. Yang dibawa
+ke Windows hanya `airgapkit-<versi>-windows-amd64.zip` (isi: `airgap.exe`,
+`airgap.example.json`, `README.txt`). Tidak ada yang perlu di-install.
+
+```powershell
+Unblock-File .\airgap.exe
+.\airgap.exe fetch all -config airgap.json -out C:\airgap\bundle -delta-out C:\airgap\delta-2026-09-21
+```
+
+Zip itu dibuat dari Linux dengan `./build.sh windows` (cross-compile, tanpa
+cgo dan tanpa mesin Windows). Kalau memang ingin membangun di Windows:
+`go build -trimpath -o airgap.exe ./cmd/airgap`.
+
+Target unduhan **tetap Ubuntu**, bukan Windows, sehingga bundle yang dihasilkan
+identik dengan yang dibuat di Linux. Hal yang sengaja ditangani:
+
+| Potensi masalah | Penanganan |
+|---|---|
+| `uv pip compile` me-resolve untuk OS host (di Windows: `colorama` ikut, dependensi Linux hilang) | selalu diberi `--python-platform x86_64-manylinux_2_39`, mengikuti `glibc_max` |
+| File input dari Notepad / PowerShell (CRLF, UTF-8 BOM, UTF-16) | `airgap.json`, `requirements.txt`, `package-lock.json`, `uv.lock`, `sources` dibaca dengan BOM/UTF-16 dinormalkan |
+| `registry:5000` menghasilkan folder ber-`:` yang tidak sah di Windows | jadi `registry_5000` di `docker/images/` |
+| Symlink `blobs/` tidak bisa dibuat tanpa hak khusus | `merge.sh` di Ubuntu memulihkannya (layout OCI tetap valid) |
+| Bit executable hilang di NTFS/exFAT, flash disk ter-mount `noexec` | script dipanggil `bash scripts/merge.sh ...`; `merge.sh` menjalankan `chmod +x` |
+| Script bash ikut ter-checkout CRLF | `.gitattributes` mengunci LF, dan `go test` gagal bila ada CR di script |
+
+Catatan: pakai folder output pendek (`C:\airgap\...`) karena path artefak
+panjang dan Explorer/robocopy bermasalah di atas 260 karakter; pakai NTFS atau
+exFAT untuk flash disk (FAT32 tidak menampung file >4 GB). `npm`, `uv`, `gpgv`
+tetap opsional dan dicari di `PATH` Windows.
 
 ## 2. Alur kerja
 
@@ -303,7 +338,8 @@ script otomatis memakai folder induknya, jadi ini sudah cukup:
 
 ```bash
 # 1. gabungkan delta ke mirror permanen
-/media/usb/delta-2026-09-21/scripts/merge.sh /media/usb/delta-2026-09-21 /srv/airgap-mirror
+#    (delta dari Windows / flash disk NTFS-exFAT: panggil dengan "bash")
+bash /media/usb/delta-2026-09-21/scripts/merge.sh /media/usb/delta-2026-09-21 /srv/airgap-mirror
 
 # 2. pastikan tidak ada file rusak setelah transfer
 /srv/airgap-mirror/scripts/verify.sh

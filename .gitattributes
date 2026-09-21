@@ -1,0 +1,7 @@
+# Scripts run under bash on Ubuntu and are embedded into the binary, so a
+# CRLF checkout on Windows would break them on the air-gapped side.
+*.sh   text eol=lf
+*.py   text eol=lf
+*.go   text eol=lf
+*.tsv  text eol=lf
+Makefile text eol=lf

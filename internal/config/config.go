@@ -3,9 +3,9 @@
 package config
 
 import (
+	"airgapkit/internal/textio"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -169,7 +169,7 @@ func Load(path string) (*Config, error) {
 	if path == "" {
 		return cfg, nil
 	}
-	b, err := os.ReadFile(path)
+	b, err := textio.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
