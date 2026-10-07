@@ -12,6 +12,8 @@
 #   ./build.sh check      vet + gofmt + tests
 #   ./build.sh offline    prove it builds with no network and empty caches
 #   ./build.sh dist       binary + source tarball + SHA256SUMS in ./dist
+#   ./build.sh release    cross-compiled binaries (linux, windows) + source
+#                         tarball + SHA256SUMS in ./dist, ready to upload
 #   ./build.sh clean
 #
 set -euo pipefail
@@ -84,6 +86,17 @@ do_dist() {
   cp "$BINARY" dist/
   # Ship the source too: the air-gapped side may want to rebuild the binary
   # itself rather than trust one that crossed the gap.
+  do_source_tarball
+  ( cd dist && sha256sum ./* > SHA256SUMS )
+  echo
+  ls -lh dist | tail -n +2 | awk '{print "  " $9 "  " $5}'
+}
+
+# Targets for ./build.sh release. Override with e.g.
+# RELEASE_TARGETS="linux/amd64 windows/amd64" ./build.sh release
+RELEASE_TARGETS=${RELEASE_TARGETS:-"linux/amd64 linux/arm64 windows/amd64 windows/arm64"}
+
+do_source_tarball() {
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git rev-parse HEAD >/dev/null 2>&1; then
     git archive --format=tar.gz --prefix="airgapkit-$VERSION/" -o "dist/airgapkit-$VERSION-src.tar.gz" HEAD
   else
@@ -91,7 +104,25 @@ do_dist() {
         --exclude="./$BINARY" --transform "s,^\.,airgapkit-$VERSION," \
         -czf "dist/airgapkit-$VERSION-src.tar.gz" .
   fi
-  ( cd dist && sha256sum ./* > SHA256SUMS )
+}
+
+do_release() {
+  have_go
+  rm -rf dist
+  mkdir -p dist
+  local target os arch out
+  for target in $RELEASE_TARGETS; do
+    os=${target%/*}
+    arch=${target#*/}
+    out="dist/$BINARY-$VERSION-$os-$arch"
+    [ "$os" = windows ] && out="$out.exe"
+    # The scripts are embedded, so each binary is the whole online side.
+    GOOS=$os GOARCH=$arch CGO_ENABLED=0 \
+      go build -trimpath -ldflags "$LDFLAGS" -o "$out" ./cmd/airgap
+    echo "built $out"
+  done
+  do_source_tarball
+  ( cd dist && sha256sum -- * > SHA256SUMS )
   echo
   ls -lh dist | tail -n +2 | awk '{print "  " $9 "  " $5}'
 }
@@ -102,6 +133,7 @@ case "${1:-build}" in
   check)   do_check ;;
   offline) do_offline ;;
   dist)    do_dist ;;
+  release) do_release ;;
   clean)   rm -rf "$BINARY" dist .offline; echo "cleaned" ;;
-  *)       sed -n '3,16p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+  *)       sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac
