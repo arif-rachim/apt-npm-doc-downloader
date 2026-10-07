@@ -1,7 +1,8 @@
 # Builds the airgap binaries for Ubuntu (Linux) and Windows.
 #
-# - Push a tag like v0.1.0 to publish a GitHub Release with the binaries,
-#   the source tarball and SHA256SUMS attached.
+# - Push a tag like v0.1.0 (or create a release with a new v* tag in the
+#   GitHub UI) to get a GitHub Release with the binaries, the source tarball
+#   and SHA256SUMS attached.
 # - Run it by hand from the Actions tab (workflow_dispatch) to get the same
 #   files as a downloadable workflow artifact without publishing a release.
 name: release
@@ -49,6 +50,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/* \
-            --title "airgapkit $GITHUB_REF_NAME" \
-            --generate-notes
+          # A release created in the GitHub UI already exists by the time
+          # its tag triggers this run; just attach the files to it.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --title "airgapkit $GITHUB_REF_NAME" \
+              --generate-notes
+          fi

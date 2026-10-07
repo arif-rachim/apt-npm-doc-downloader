@@ -49,7 +49,7 @@ Every `v*` tag is built by `.github/workflows/release.yml` and published on the 
 | `airgapkit-<version>-src.tar.gz` | source, to rebuild on the air-gapped side |
 | `SHA256SUMS` | checksums of all of the above |
 
-The air-gap scripts are embedded, so the single binary is all you download. On Linux, `chmod +x` it after downloading. To cut a release: `git tag v0.1.0 && git push origin v0.1.0`.
+The air-gap scripts are embedded, so the single binary is all you download. On Linux, `chmod +x` it after downloading. To cut a release, push a tag (`git tag v0.1.0 && git push origin v0.1.0`) or create a release with a new `v*` tag on GitHub; the workflow attaches the files a few minutes later.
 
 On Windows, apt indexes compressed as `.xz`/`.bz2`/`.zst` need the matching tool on `PATH` (`.gz`, which Ubuntu publishes, works out of the box), and the scripts written into the bundle still run on the air-gapped Linux machine.
 
