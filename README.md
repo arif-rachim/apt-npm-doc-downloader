@@ -32,8 +32,26 @@ Go 1.24 (standard library only) · Bash · curl · Sonatype Nexus Repository 3 R
 ./build.sh check        # go vet + gofmt + unit tests + bash syntax check of the scripts
 ./build.sh offline      # prove it builds without network access
 ./build.sh dist         # ./dist: binary + source tarball + SHA256SUMS
+./build.sh release      # ./dist: linux + windows (amd64, arm64) binaries + source tarball + SHA256SUMS
 ./build.sh clean
 ```
+
+### Prebuilt binaries
+
+Every `v*` tag is built by `.github/workflows/release.yml` and published on the [Releases page](../../releases) with:
+
+| File | For |
+|---|---|
+| `airgap-<version>-linux-amd64` | Ubuntu / any x86-64 Linux (static) |
+| `airgap-<version>-linux-arm64` | ARM64 Linux (static) |
+| `airgap-<version>-windows-amd64.exe` | Windows x64 |
+| `airgap-<version>-windows-arm64.exe` | Windows on ARM |
+| `airgapkit-<version>-src.tar.gz` | source, to rebuild on the air-gapped side |
+| `SHA256SUMS` | checksums of all of the above |
+
+The air-gap scripts are embedded, so the single binary is all you download. On Linux, `chmod +x` it after downloading. To cut a release: `git tag v0.1.0 && git push origin v0.1.0`.
+
+On Windows, apt indexes compressed as `.xz`/`.bz2`/`.zst` need the matching tool on `PATH` (`.gz`, which Ubuntu publishes, works out of the box), and the scripts written into the bundle still run on the air-gapped Linux machine.
 
 `make` also works if it is installed (it only wraps `build.sh`), but `build.sh` deliberately needs nothing more than bash and Go so that it can also be used on the air-gapped machine.
 
